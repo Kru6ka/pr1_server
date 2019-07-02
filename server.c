@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 
 int main()
 {
@@ -46,10 +47,11 @@ int main()
             if(bytes_read <= 0) break;
             //Полученное значение
             printf(buf);
-            buf = atof(buf);
-            msg = buf*buf;
+
+            //msg = pow(buf, 3);
+            //msg = ;
             //Отправка msg
-            send(sock, msg, bytes_read, 0);
+            //send(sock, msg, bytes_read, 0);
         }
 
         close(sock);
