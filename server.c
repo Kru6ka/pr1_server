@@ -47,11 +47,9 @@ int main()
             if(bytes_read <= 0) break;
             //Полученное значение
             printf(buf);
-
-            //msg = pow(buf, 3);
-            //msg = ;
+            msg = "";
             //Отправка msg
-            //send(sock, msg, bytes_read, 0);
+            send(sock, msg, bytes_read, 0);
         }
 
         close(sock);
