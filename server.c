@@ -1,59 +1,92 @@
-#include <sys/types.h>
-#include <sys/socket.h>
+#include <netdb.h>
 #include <netinet/in.h>
-#include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h> // for close
+#define MAX 80
+#define PORT 8888
+#define SA struct sockaddr
 
+// Function designed for chat between client and server.
+void func(int sockfd)
+{
+	char buff[MAX];
+	int i;
+	char *p;
+	for (;;) {
+		bzero(buff, MAX);
+		// read the message from client and copy it in buffer
+		read(sockfd, buff, sizeof(buff));
+		// Конвертация принятых данных в Int
+		char *end;
+		const char *p=buff;
+	  i = strtol(p, &end, 10);
+		printf("'%.*s' -> ", (int)(end-p), p);
+		bzero(buff, MAX);
+		//Операции на числом
+		i=i*2;
+		printf("%i\n", i);
+		//Int to string
+		sprintf(buff,"%i",i);
+		//send result to client
+		write(sockfd, buff, sizeof(buff));
+		break;
+	}
+}
+// Driver function
 int main()
 {
-    int sock, listener;
-    struct sockaddr_in addr;
-    char buf[1024];
-    char msg[1024];
-    int bytes_read;
+	int sockfd, connfd, len;
+	struct sockaddr_in servaddr, cli;
 
-    listener = socket(AF_INET, SOCK_STREAM, 0);
-    if(listener < 0)
-    {
-        perror("socket");
-        exit(1);
-    }
+	// socket create and verification
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd == -1) {
+		printf("socket creation failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully created..\n");
+	bzero(&servaddr, sizeof(servaddr));
 
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(5000);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    if(bind(listener, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-    {
-        perror("bind");
-        exit(2);
-    }
+	// assign IP, PORT
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(PORT);
 
-    listen(listener, 1);
+	// Binding newly created socket to given IP and verification
+	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+		printf("socket bind failed...\n");
+		exit(0);
+	}
+	else
+		printf("Socket successfully binded..\n");
 
-    while(1)
-    {
-        sock = accept(listener, NULL, NULL);
-        if(sock < 0)
-        {
-            perror("accept");
-            exit(3);
-        }
+	// Now server is ready to listen and verification
+	if ((listen(sockfd, 5)) != 0) {
+		printf("Listen failed...\n");
+		exit(0);
+	}
+	else
+		printf("Server listening..\n");
+	len = sizeof(cli);
 
-        while(1)
-        {
-            bytes_read = recv(sock, buf, 1024, 0);
-            if(bytes_read <= 0) break;
-            //Полученное значение
-            printf(buf);
-            msg = "";
-            //Отправка msg
-            send(sock, msg, bytes_read, 0);
-        }
+	// Accept the data packet from client and verification
+	connfd = accept(sockfd, (SA*)&cli, &len);
+	if (connfd < 0) {
+		printf("server acccept failed...\n");
+		exit(0);
+	}
+	else
+		printf("server acccept the client...\n");
 
-        close(sock);
-    }
+	// Function for chatting between client and server
+	func(connfd);
 
-    return 0;
+	// After chatting close the socket
+	shutdown(sockfd,SHUT_RDWR);
 }
