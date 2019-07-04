@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h> // for close
-#define MAX 1024
+#define MAX 80
 #define PORT 8888
 #define SA struct sockaddr
 //RED LED2
@@ -27,7 +27,6 @@ float convert(char *mass)
 								char *end;
 								const char *p=mass;
 								float x = strtof(p, &end);
-								printf("%f -> ",x);
 								return x;
 }
 float math_ops(float nmbr)
@@ -47,6 +46,21 @@ void func(int sockfd)
 																bzero(buff, MAX);
 																// Операции на числом
 																float result = math_ops(i);
+																if (result==0) {
+																	printf("Client disconnected. Shutting down...\n");
+																	usleep(100000);
+																	system(GRN_OFF);
+																	system(RED_ON);
+																	usleep(300000);
+																	system(RED_OFF);
+																	usleep(300000);
+																	system(RED_ON);
+																	usleep(300000);
+																	system(RED_OFF);
+																	close(sockfd);
+																	break;
+																}
+																printf("%f -> ",i);
 																printf("%f\n", result);
 																// Int to string
 																sprintf(buff,"%f",result);
