@@ -26,9 +26,8 @@
 #define GRN_OFF                                                                \
   "echo 0 > /sys/devices/platform/leds1/leds/status0:green:usr/brightness"
 int system(const char *command);
-// Функция общения клиента с сесвером.
+// Конвертация принятых данных в число
 float convert(char *mass) {
-  // Конвертация принятых данных в число
   char *end;
   const char *p = mass;
   float x = strtof(p, &end);
@@ -38,6 +37,7 @@ float math_ops(float nmbr) {
   nmbr = nmbr * 2;
   return nmbr;
 }
+// Функция общения клиента с сервером.
 void func(int sockfd) {
   char buff[MAX];
   float i;
