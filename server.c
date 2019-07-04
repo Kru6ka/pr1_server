@@ -11,28 +11,27 @@
 #define PORT 8888
 #define SA struct sockaddr
 
-// Function designed for chat between client and server.
+// Функция общения клиента с сесвером.
 void func(int sockfd)
 {
 	char buff[MAX];
 	int i;
-	char *p;
+	char *end;
 	for (;;) {
 		bzero(buff, MAX);
-		// read the message from client and copy it in buffer
+		// Копирование сообщения клиента в буфер
 		read(sockfd, buff, sizeof(buff));
 		// Конвертация принятых данных в Int
-		char *end;
 		const char *p=buff;
 	  i = strtol(p, &end, 10);
 		printf("'%.*s' -> ", (int)(end-p), p);
 		bzero(buff, MAX);
-		//Операции на числом
+		// Операции на числом
 		i=i*2;
 		printf("%i\n", i);
-		//Int to string
+		// Int to string
 		sprintf(buff,"%i",i);
-		//send result to client
+		// Отправка результата клиенту
 		write(sockfd, buff, sizeof(buff));
 		break;
 	}
@@ -84,9 +83,9 @@ int main()
 	else
 		printf("server acccept the client...\n");
 
-	// Function for chatting between client and server
+	// Вызов функции обмена сообщениями
 	func(connfd);
 
-	// After chatting close the socket
+	// Закрытие сокета
 	shutdown(sockfd,SHUT_RDWR);
 }
