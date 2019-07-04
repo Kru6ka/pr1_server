@@ -10,82 +10,124 @@
 #define MAX 80
 #define PORT 8888
 #define SA struct sockaddr
-
+//RED LED2
+#define RED_ON "echo 1 > /sys/devices/platform/leds1/leds/status1:red:mmc0/brightness"
+#define RED_OFF "echo 0 > /sys/devices/platform/leds1/leds/status1:red:mmc0/brightness"
+//BLUE LED2
+#define BLU_ON "echo 1 > /sys/devices/platform/leds1/leds/status1:yellow:usr/brightness"
+#define BLU_OFF "echo 0 > /sys/devices/platform/leds1/leds/status1:yellow:usr/brightness"
+//GREEN LED1
+#define GRN_ON "echo 1 > /sys/devices/platform/leds1/leds/status0:green:usr/brightness"
+#define GRN_OFF "echo 0 > /sys/devices/platform/leds1/leds/status0:green:usr/brightness"
+int system(const char *command);
 // Функция общения клиента с сесвером.
+char *end;
+// Конвертация принятых данных в Int
+//const char *p=buff;
+//i = strtol(p, &end, 10);
+//printf("'%.*s' -> ", (int)(end-p), p);
+int convert(char *mass)
+{
+								// Конвертация принятых данных в Int
+								const char *p=mass;
+								int x = strtol(p, &end, 10);
+								printf("%.*s -> ", (int)(end-p), p);
+								return x;
+}
+int math_ops(int nmbr)
+{
+								nmbr=nmbr*2;
+								return nmbr;
+}
 void func(int sockfd)
 {
-	char buff[MAX];
-	int i;
-	char *end;
-	for (;;) {
-		bzero(buff, MAX);
-		// Копирование сообщения клиента в буфер
-		read(sockfd, buff, sizeof(buff));
-		// Конвертация принятых данных в Int
-		const char *p=buff;
-	  i = strtol(p, &end, 10);
-		printf("'%.*s' -> ", (int)(end-p), p);
-		bzero(buff, MAX);
-		// Операции на числом
-		i=i*2;
-		printf("%i\n", i);
-		// Int to string
-		sprintf(buff,"%i",i);
-		// Отправка результата клиенту
-		write(sockfd, buff, sizeof(buff));
-		break;
-	}
+								char buff[MAX];
+								int i;
+								for (;;) {
+																bzero(buff, MAX);
+																// Копирование сообщения клиента в буфер
+																read(sockfd, buff, sizeof(buff));
+																i = convert(buff);
+																bzero(buff, MAX);
+																// Операции на числом
+																int com = i;
+																int result = math_ops(i);
+																printf("%i\n", result);
+																// Int to string
+																sprintf(buff,"%i",result);
+																// Отправка результата клиенту
+																write(sockfd, buff, sizeof(buff));
+																system(BLU_ON);
+																usleep(100000);
+																system(BLU_OFF);
+																if (com==0) {
+																								close(sockfd);
+																								break;
+																} else continue;
+								}
 }
 // Driver function
 int main()
 {
-	int sockfd, connfd, len;
-	struct sockaddr_in servaddr, cli;
+								system(BLU_OFF);
+								system(RED_OFF);
+								system(GRN_OFF);
+								int sockfd, connfd, len;
+								struct sockaddr_in servaddr, cli;
 
-	// socket create and verification
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd == -1) {
-		printf("socket creation failed...\n");
-		exit(0);
-	}
-	else
-		printf("Socket successfully created..\n");
-	bzero(&servaddr, sizeof(servaddr));
+								// socket create and verification
+								sockfd = socket(AF_INET, SOCK_STREAM, 0);
+								if (sockfd == -1) {
+																printf("socket creation failed...\n");
+																exit(0);
+								}
+								else
+																printf("Socket successfully created..\n");
+								bzero(&servaddr, sizeof(servaddr));
 
-	// assign IP, PORT
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	servaddr.sin_port = htons(PORT);
+								// assign IP, PORT
+								servaddr.sin_family = AF_INET;
+								servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+								servaddr.sin_port = htons(PORT);
 
-	// Binding newly created socket to given IP and verification
-	if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
-		printf("socket bind failed...\n");
-		exit(0);
-	}
-	else
-		printf("Socket successfully binded..\n");
+								// Binding newly created socket to given IP and verification
+								if ((bind(sockfd, (SA*)&servaddr, sizeof(servaddr))) != 0) {
+																printf("socket bind failed...\n");
+																system(RED_ON);
+																sleep(3);
+																system(RED_OFF);
+																exit(0);
+								}
+								else
+																printf("Socket successfully binded..\n");
 
-	// Now server is ready to listen and verification
-	if ((listen(sockfd, 5)) != 0) {
-		printf("Listen failed...\n");
-		exit(0);
-	}
-	else
-		printf("Server listening..\n");
-	len = sizeof(cli);
+								// Now server is ready to listen and verification
+								if ((listen(sockfd, 5)) != 0) {
+																printf("Listen failed...\n");
+																exit(0);
+								}
+								else
+																printf("Server listening..\n");
+								len = sizeof(cli);
 
-	// Accept the data packet from client and verification
-	connfd = accept(sockfd, (SA*)&cli, &len);
-	if (connfd < 0) {
-		printf("server acccept failed...\n");
-		exit(0);
-	}
-	else
-		printf("server acccept the client...\n");
+								// Accept the data packet from client and verification
+								connfd = accept(sockfd, (SA*)&cli, &len);
+								if (connfd < 0) {
+																printf("server acccept failed...\n");
+																exit(0);
+								}
+								else
+								{
+																printf("server acccept the client...\n");
+																system(GRN_ON);
+								}
 
-	// Вызов функции обмена сообщениями
-	func(connfd);
+								// Вызов функции обмена сообщениями
+								func(connfd);
 
-	// Закрытие сокета
-	shutdown(sockfd,SHUT_RDWR);
+								// Закрытие сокета
+								close(sockfd);
+								system(BLU_OFF);
+								system(GRN_OFF);
+								system(RED_OFF);
 }
