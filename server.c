@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h> // for close
-#define MAX 80
+#define MAX 1024
 #define PORT 8888
 #define SA struct sockaddr
 //RED LED2
@@ -21,20 +21,16 @@
 #define GRN_OFF "echo 0 > /sys/devices/platform/leds1/leds/status0:green:usr/brightness"
 int system(const char *command);
 // Функция общения клиента с сесвером.
-char *end;
-// Конвертация принятых данных в Int
-//const char *p=buff;
-//i = strtol(p, &end, 10);
-//printf("'%.*s' -> ", (int)(end-p), p);
-int convert(char *mass)
+float convert(char *mass)
 {
-								// Конвертация принятых данных в Int
+								// Конвертация принятых данных в число
+								char *end;
 								const char *p=mass;
-								int x = strtol(p, &end, 10);
-								printf("%.*s -> ", (int)(end-p), p);
+								float x = strtof(p, &end);
+								printf("%f -> ",x);
 								return x;
 }
-int math_ops(int nmbr)
+float math_ops(float nmbr)
 {
 								nmbr=nmbr*2;
 								return nmbr;
@@ -42,7 +38,7 @@ int math_ops(int nmbr)
 void func(int sockfd)
 {
 								char buff[MAX];
-								int i;
+								float i;
 								for (;;) {
 																bzero(buff, MAX);
 																// Копирование сообщения клиента в буфер
@@ -50,20 +46,15 @@ void func(int sockfd)
 																i = convert(buff);
 																bzero(buff, MAX);
 																// Операции на числом
-																int com = i;
-																int result = math_ops(i);
-																printf("%i\n", result);
+																float result = math_ops(i);
+																printf("%f\n", result);
 																// Int to string
-																sprintf(buff,"%i",result);
+																sprintf(buff,"%f",result);
 																// Отправка результата клиенту
 																write(sockfd, buff, sizeof(buff));
 																system(BLU_ON);
 																usleep(100000);
 																system(BLU_OFF);
-																if (com==0) {
-																								close(sockfd);
-																								break;
-																} else continue;
 								}
 }
 // Driver function
