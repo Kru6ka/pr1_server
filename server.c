@@ -63,10 +63,10 @@ void func(int sockfd) {
       close(sockfd);
       break;
     }
-    printf("%f -> ", i);
-    printf("%f\n", result);
+    printf("%.3f -> ", i);
+    printf("%.3f\n", result);
     // Int to string
-    sprintf(buff, "%f", result);
+    sprintf(buff, "%.3f", result);
     // Отправка результата клиенту
     write(sockfd, buff, sizeof(buff));
     system(BLU_ON);
